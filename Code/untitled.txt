@@ -1,0 +1,30 @@
+curl --location --request POST 'https://adb-6734083905565598.18.azuredatabricks.net/api/2.1/jobs/run-now' \
+--header 'Authorization: Bearer dapi1c03de216441655be7b44c248738a09d' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+
+"job_id": 168756754981601,
+
+"notebook_params": {
+
+  "myinput": "microsoft;apple",
+  "startdate": "2022-05-04",
+  "enddate": "2022-05-05"
+
+
+}
+
+}
+'
+
+
+curl --location --request GET 'https://adb-6734083905565598.18.azuredatabricks.net/api/2.1/jobs/runs/get?run_id=12307' \
+--header 'Authorization: Bearer dapi1c03de216441655be7b44c248738a09d'
+
+
+
+curl --location --request GET 'https://adb-6734083905565598.18.azuredatabricks.net/api/2.1/jobs/runs/get-output?run_id=12742' \
+--header 'Authorization: Bearer dapi1c03de216441655be7b44c248738a09d'
+
+
+
