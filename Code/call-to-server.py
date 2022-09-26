@@ -1,6 +1,9 @@
 import time
 import requests
+import json
 from requests.structures import CaseInsensitiveDict
+
+csvfilename = "finalscore.csv"
 
 def step1():
     url = "https://adb-6734083905565598.18.azuredatabricks.net/api/2.1/jobs/run-now"
@@ -13,7 +16,7 @@ def step1():
     {
         "job_id": 168756754981601,
         "notebook_params": {
-        "myinput": "reliance",
+        "myinput": "reliance;apple;ibm",
         "startdate": "2022-05-02",
         "enddate": "2022-05-05"
     }
@@ -29,6 +32,7 @@ def step1():
     print(f"Run_id1:{runid1}")
     return runid1
 
+
 def step2(runid):
     url = f"https://adb-6734083905565598.18.azuredatabricks.net/api/2.1/jobs/runs/get?run_id={runid}"
     headers = CaseInsensitiveDict()
@@ -38,6 +42,7 @@ def step2(runid):
     # print(resp.text)
     print(f"Run_id2:{runid}")
     return runid
+
 
 def step3(runid):
     url = f"https://adb-6734083905565598.18.azuredatabricks.net/api/2.1/jobs/runs/get-output?run_id={runid}"
@@ -56,27 +61,33 @@ def step3(runid):
     return esgscore 
 
 
+def writedataintocsv(esgscoredata, csvfilename):
+    jsondata = json.loads(esgscoredata.replace("'", "\""))
+    allkeys  = list(jsondata["E"].keys())
+    f = open(csvfilename, "w")
+    f.write("company_name, E, S, G")
+    for singleKey in allkeys:
+        singleKeylabel = singleKey
+        if(singleKey!="industry_tone"):
+            singleKeylabel = singleKey.replace("_tone", "")
+        filedata = ("\n"+singleKeylabel+","+str(jsondata["E"][singleKey])+", "+str(jsondata["S"][singleKey])+", "+str(jsondata["G"][singleKey]))
+        f.write(filedata)
+    f.close()
 
 
 
 
-
-
-
-
-rundiFromserver = step1()
-taskidFromserver = step2(rundiFromserver)
+#new id = 148303, then 149594, then 150979
+#rundiFromserver = step1()
+taskidFromserver = 150979 #step2(rundiFromserver)
 print(taskidFromserver)
-esgscoredata = step3(taskidFromserver)
+esgscoredata =  step3(taskidFromserver)
 print(esgscoredata)
 print(">>>>>>>>>>>>>")
-# print(esgscoredata["metadata"]["state"]["life_cycle_state"])
-while(esgscoredata["metadata"]["state"]["life_cycle_state"]=="PENDING"):
+while(esgscoredata["metadata"]["state"]["life_cycle_state"]== "PENDING" or esgscoredata["metadata"]["state"]["life_cycle_state"]=="RUNNING"):
     esgscoredata = step3(taskidFromserver)
     print("trying again after 3 min")
     time.sleep(180)
-
-print(esgscoredata["notebook_output"]["result"])
-csvfilename = "finalscore.csv"
-# writedataintocsv(esgscoredata, csvfilename)
+print(esgscoredata["notebook_output"])
+writedataintocsv(esgscoredata["notebook_output"]["result"], csvfilename)
 
